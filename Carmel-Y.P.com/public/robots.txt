@@ -18,10 +18,15 @@ Allow: /
 Allow: /services
 Allow: /products
 Allow: /about
+Allow: /testimonials
+Allow: /blog
 Allow: /contact
 
-# Block unnecessary files
-Disallow: /*.json$
+# Block unnecessary files except for blogData.json in its specific path if needed for static site generation
+# Disallow: /*.json$
+# If blogData.json is fetched client-side and not by crawlers, it's fine.
+# Or, if it's part of a build process, ensure generated HTML is crawlable.
+Disallow: /api/
 Disallow: /api/
 Disallow: /temp/
 Disallow: /cache/
