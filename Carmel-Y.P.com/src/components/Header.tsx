@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { Link, NavLink, useLocation } from 'react-router-dom'; // Import Link, NavLink and useLocation
 import { Menu, X, Phone, Globe, Shield } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useContent } from '../contexts/ContentContext';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const location = useLocation(); // For closing mobile menu on navigation
   const [isScrolled, setIsScrolled] = useState(false);
   const { language, toggleLanguage, t } = useLanguage();
   const { content } = useContent();
@@ -14,18 +16,34 @@ const Header: React.FC = () => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
     };
-
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+    // Close mobile menu if path changes
+    if (isMenuOpen) {
+      setIsMenuOpen(false);
     }
-    setIsMenuOpen(false);
-  };
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [location, isMenuOpen]); // Add location and isMenuOpen to dependency array
+
+  // scrollToSection can be kept if there are other parts of the site using it,
+  // but for the main navigation, it will be replaced by router Links.
+  // const scrollToSection = (sectionId: string) => {
+  //   const element = document.getElementById(sectionId);
+  //   if (element) {
+  //     element.scrollIntoView({ behavior: 'smooth' });
+  //   }
+  //   setIsMenuOpen(false);
+  // };
+
+  const navItems = [
+    { key: 'nav.home', path: '/' },
+    { key: 'nav.services', path: '/services' },
+    { key: 'nav.about', path: '/about' },
+    { key: 'nav.products', path: '/products' }, // Assuming /products page might exist
+    { key: 'nav.testimonials', path: '/testimonials' },
+    { key: 'nav.faq', path: '/faq' }, // New FAQ link
+    { key: 'nav.blog', path: '/blog' },
+    { key: 'nav.contact', path: '/contact' }
+  ];
 
   return (
     <motion.header 
@@ -64,28 +82,29 @@ const Header: React.FC = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center space-x-8 rtl:space-x-reverse">
-            {[
-              { key: 'nav.home', id: 'hero' },
-              { key: 'nav.services', id: 'services' },
-              { key: 'nav.about', id: 'about' },
-              { key: 'nav.products', id: 'products' },
-              { key: 'nav.testimonials', id: 'testimonials' },
-              { key: 'nav.contact', id: 'contact' }
-            ].map((item, index) => (
-              <motion.button
+            {navItems.map((item, index) => (
+              <motion.custom
                 key={item.key}
-                onClick={() => scrollToSection(item.id)}
-                className={`relative font-medium transition-all duration-300 hover:scale-105 ${
-                  isScrolled ? 'text-gray-700 hover:text-sky-600' : 'text-white hover:text-sky-300'
-                }`}
+                component={NavLink}
+                to={item.path}
+                className={({ isActive }: { isActive: boolean }) =>
+                  `relative font-medium transition-all duration-300 hover:scale-105 ${
+                    isScrolled ? 'text-gray-700 hover:text-sky-600' : 'text-white hover:text-sky-300'
+                  } ${isActive && isScrolled ? 'text-sky-600' : isActive ? 'text-sky-300' : ''}`
+                }
                 whileHover={{ y: -2 }}
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
+                onClick={() => setIsMenuOpen(false)} // Close menu on click
               >
-                {t(item.key)}
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-sky-500 transition-all duration-300 hover:w-full"></span>
-              </motion.button>
+                {({ isActive }: { isActive: boolean }) => (
+                  <>
+                    {t(item.key)}
+                    <span className={`absolute -bottom-1 left-0 w-full h-0.5 bg-sky-500 transition-all duration-300 transform ${isActive ? 'scale-x-100' : 'scale-x-0'} group-hover:scale-x-100 origin-left`}></span>
+                  </>
+                )}
+              </motion.custom>
             ))}
           </nav>
 
@@ -142,28 +161,25 @@ const Header: React.FC = () => {
           transition={{ duration: 0.3 }}
           className="lg:hidden overflow-hidden bg-white/95 backdrop-blur-lg border-t border-gray-200/50"
         >
-          <nav className="py-6 space-y-4">
-            {[
-              { key: 'nav.home', id: 'hero' },
-              { key: 'nav.services', id: 'services' },
-              { key: 'nav.about', id: 'about' },
-              { key: 'nav.products', id: 'products' },
-              { key: 'nav.testimonials', id: 'testimonials' },
-              { key: 'nav.contact', id: 'contact' }
-            ].map((item, index) => (
-              <motion.button
+          <nav className="py-6 px-4 space-y-2"> {/* Added px-4 and reduced space-y */}
+            {navItems.map((item, index) => (
+              <motion.custom
                 key={item.key}
-                onClick={() => scrollToSection(item.id)}
-                className="block w-full text-right text-gray-700 font-medium hover:text-sky-600 transition-colors py-2"
+                component={NavLink}
+                to={item.path}
+                onClick={() => setIsMenuOpen(false)} // Close menu on click
+                className={({ isActive }: { isActive: boolean }) =>
+                  `block w-full text-right text-gray-700 font-medium hover:text-sky-600 transition-colors py-3 px-3 rounded-md text-lg ${isActive ? 'bg-sky-50 text-sky-600' : ''}`
+                }
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
+                transition={{ delay: index * 0.05 }} // Slightly faster delay for mobile
               >
                 {t(item.key)}
-              </motion.button>
+              </motion.custom>
             ))}
             
-            <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+            <div className="flex items-center justify-between pt-4 mt-4 border-t border-gray-200"> {/* Added mt-4 */}
               <motion.button
                 onClick={toggleLanguage}
                 className="flex items-center space-x-2 rtl:space-x-reverse text-gray-700 hover:text-sky-600 transition-colors"

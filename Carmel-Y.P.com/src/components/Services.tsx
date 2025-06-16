@@ -1,57 +1,37 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Wrench, Home, Settings, MessageSquare, Zap, Phone, ArrowRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Wrench, Home, Settings, MessageSquare, Zap, Phone, ArrowRight, ArrowLeft } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useContent } from '../contexts/ContentContext';
 
-const Services: React.FC = () => {
-  const { t } = useLanguage();
-  const { content } = useContent();
+const iconComponents: { [key: string]: React.ElementType } = {
+  Home,
+  Wrench,
+  Settings,
+  MessageSquare,
+  Zap,
+  Phone,
+};
 
-  const services = [
-    {
-      icon: Home,
-      titleKey: 'services.installation.title',
-      descKey: 'services.installation.desc',
-      color: 'from-sky-500 to-blue-600',
-      hoverColor: 'hover:from-sky-600 hover:to-blue-700'
-    },
-    {
-      icon: Wrench,
-      titleKey: 'services.repair.title',
-      descKey: 'services.repair.desc',
-      color: 'from-emerald-500 to-teal-600',
-      hoverColor: 'hover:from-emerald-600 hover:to-teal-700'
-    },
-    {
-      icon: Settings,
-      titleKey: 'services.maintenance.title',
-      descKey: 'services.maintenance.desc',
-      color: 'from-purple-500 to-indigo-600',
-      hoverColor: 'hover:from-purple-600 hover:to-indigo-700'
-    },
-    {
-      icon: MessageSquare,
-      titleKey: 'services.consultation.title',
-      descKey: 'services.consultation.desc',
-      color: 'from-orange-500 to-red-600',
-      hoverColor: 'hover:from-orange-600 hover:to-red-700'
-    },
-    {
-      icon: Zap,
-      titleKey: 'services.gas.title',
-      descKey: 'services.gas.desc',
-      color: 'from-yellow-500 to-orange-600',
-      hoverColor: 'hover:from-yellow-600 hover:to-orange-700'
-    },
-    {
-      icon: Phone,
-      titleKey: 'services.emergency.title',
-      descKey: 'services.emergency.desc',
-      color: 'from-red-500 to-pink-600',
-      hoverColor: 'hover:from-red-600 hover:to-pink-700'
-    }
-  ];
+const Services: React.FC = () => {
+  const { t, language } = useLanguage();
+  const { content } = useContent();
+  const { services } = content; // Get services from context
+
+  const [flippedStates, setFlippedStates] = useState(Array(services.length).fill(false));
+
+  // Effect to reset flipped states if the number of services changes
+  useEffect(() => {
+    setFlippedStates(Array(services.length).fill(false));
+  }, [services.length]);
+
+  const handleFlip = (index: number) => {
+    setFlippedStates(prevStates => {
+      const newStates = [...prevStates];
+      newStates[index] = !newStates[index];
+      return newStates;
+    });
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -121,46 +101,109 @@ const Services: React.FC = () => {
           viewport={{ once: true }}
         >
           {services.map((service, index) => {
-            const IconComponent = service.icon;
+            const IconComponent = iconComponents[service.icon];
+            const isFlipped = flippedStates[index];
+
+            if (!IconComponent) {
+              console.warn(`Icon component not found for service: ${service.icon}`);
+              return null; // Or a fallback UI
+            }
+
+            // Ensure service.color and service.hoverColor are defined, provide defaults if not
+            const cardColor = service.color || 'from-gray-500 to-gray-600';
+            const cardHoverColor = service.hoverColor || 'hover:from-gray-600 hover:to-gray-700';
+
+
             return (
               <motion.div
-                key={index}
-                className="group relative bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100 hover:border-sky-200 overflow-hidden"
+                key={service.id || index} // Use service.id if available, otherwise index
                 variants={itemVariants}
-                whileHover={{ y: -8, scale: 1.02 }}
+                className="relative"
+                style={{ perspective: 1000 }} // Required for 3D effect
               >
-                {/* Background Gradient on Hover */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${service.color} opacity-0 group-hover:opacity-5 transition-opacity duration-500`}></div>
-                
-                {/* Icon */}
-                <motion.div 
-                  className={`relative w-20 h-20 bg-gradient-to-br ${service.color} rounded-2xl flex items-center justify-center mb-6 shadow-lg`}
-                  whileHover={{ rotate: 360, scale: 1.1 }}
-                  transition={{ duration: 0.6 }}
+                <motion.div
+                  className="relative w-full h-full transition-transform duration-700"
+                  style={{ transformStyle: 'preserve-3d' }}
+                  animate={{ rotateY: isFlipped ? 180 : 0 }}
+                  transition={{ duration: 0.7, ease: 'easeInOut' }}
                 >
-                  <IconComponent className="w-10 h-10 text-white" />
+                  {/* Front of the card */}
+                  <motion.div
+                    className="absolute w-full h-full bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden flex flex-col" // Removed p-8 and justify-between for now
+                    style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }} // Hide back when not visible
+                  >
+                    {/* Service Image */}
+                    {service.image && (
+                      <img
+                        src={service.image}
+                        alt={t(service.titleKey)}
+                        className="w-full h-40 object-cover" // Adjusted height
+                      />
+                    )}
+                    {/* Content Padding */}
+                    <div className="p-6 flex flex-col flex-grow justify-between"> {/* Added p-6 here and flex-grow */}
+                      <div>
+                        <div className={`absolute inset-0 bg-gradient-to-br ${cardColor} opacity-0 group-hover:opacity-5 transition-opacity duration-500`}></div>
+                        <motion.div
+                          className={`relative w-20 h-20 bg-gradient-to-br ${cardColor} rounded-2xl flex items-center justify-center mb-6 shadow-lg ${service.image ? '-mt-12' : ''}`} // Conditional margin if image exists
+                        >
+                          <IconComponent className="w-10 h-10 text-white" />
+                        </motion.div>
+                        <h3 className="text-2xl font-bold text-gray-900 mb-4 group-hover:text-sky-700 transition-colors duration-300">
+                          {t(service.titleKey)}
+                        </h3>
+                      <p className="text-gray-600 leading-relaxed mb-6 group-hover:text-gray-700 transition-colors duration-300">
+                        {t(service.descKey)}
+                      </p>
+                    </div>
+                    <motion.button
+                      onClick={() => handleFlip(index)}
+                      className="flex items-center space-x-2 rtl:space-x-reverse text-sky-600 font-semibold hover:text-sky-700 transition-colors duration-300 self-start"
+                      whileHover={{ x: language === 'he' ? -5 : 5 }}
+                    >
+                      <span>{t('services.readMore')}</span>
+                      {language === 'he' ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
+                    </motion.button>
+                    <div className="absolute top-4 right-4 w-16 h-16 bg-gradient-to-br from-sky-100 to-blue-100 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  </motion.div>
+
+                  {/* Back of the card */}
+                  <motion.div
+                    className="absolute w-full h-full bg-gradient-to-br from-sky-600 to-blue-700 text-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden flex flex-col" // Removed p-8
+                    style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }} // Hide back when not visible and pre-rotate
+                  >
+                     {/* Service Image on Back as well? (Optional) - For now, keeping it simple */}
+                     {/* {service.image && (
+                      <img
+                        src={service.image}
+                        alt={t(service.titleKey)}
+                        className="w-full h-40 object-cover opacity-50"
+                      />
+                    )} */}
+                    {/* Content Padding for Back */}
+                    <div className="p-6 flex flex-col flex-grow justify-between"> {/* Added p-6 here */}
+                      <div>
+                        <h3 className="text-2xl font-bold mb-4">
+                          {t(service.titleKey)}
+                        </h3>
+                        {/* Optional: Display image on back if design requires */}
+                        {/* {service.image && !isFlippedCardFrontImage && (
+                          <img src={service.image} alt={t(service.titleKey)} className="w-full h-32 object-cover rounded-lg mb-4" />
+                        )} */}
+                        <p className="leading-relaxed mb-6 text-sm"> {/* text-sm for potentially more text */}
+                          {t(service.detailedDescKey, `Detailed information about ${t(service.titleKey)}.`)}
+                        </p>
+                      </div>
+                      <motion.button
+                      onClick={() => handleFlip(index)}
+                      className="flex items-center space-x-2 rtl:space-x-reverse font-semibold hover:text-gray-200 transition-colors duration-300 self-start"
+                      whileHover={{ x: language === 'he' ? -5 : 5 }}
+                    >
+                      <span>{t('services.showLess')}</span>
+                      {language === 'he' ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
+                    </motion.button>
+                  </motion.div>
                 </motion.div>
-                
-                {/* Content */}
-                <h3 className="text-2xl font-bold text-gray-900 mb-4 group-hover:text-sky-700 transition-colors duration-300">
-                  {t(service.titleKey)}
-                </h3>
-                
-                <p className="text-gray-600 leading-relaxed mb-6 group-hover:text-gray-700 transition-colors duration-300">
-                  {t(service.descKey)}
-                </p>
-                
-                {/* Learn More Button */}
-                <motion.button 
-                  className="flex items-center space-x-2 rtl:space-x-reverse text-sky-600 font-semibold hover:text-sky-700 transition-colors group-hover:translate-x-2 rtl:group-hover:-translate-x-2 transition-transform duration-300"
-                  whileHover={{ x: 5 }}
-                >
-                  <span>קרא עוד</span>
-                  <ArrowRight className="w-4 h-4" />
-                </motion.button>
-                
-                {/* Decorative Element */}
-                <div className="absolute top-4 right-4 w-16 h-16 bg-gradient-to-br from-sky-100 to-blue-100 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               </motion.div>
             );
           })}

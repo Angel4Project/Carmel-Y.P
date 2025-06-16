@@ -7,99 +7,50 @@ import { useContent } from '../contexts/ContentContext';
 const Testimonials: React.FC = () => {
   const { t } = useLanguage();
   const { content } = useContent();
+  const { testimonials, averageRating } = content; // Use testimonials and averageRating from context
 
-  const testimonials = [
-    {
-      id: 1,
-      name: 'דוד כהן',
-      location: 'כפר סבא',
-      rating: 5,
-      text: 'שירות מצוין! ירון הגיע במהירות, אבחן את הבעיה ותיקן את המזגן תוך שעה. מקצועי, אמין ובמחיר הוגן. בהחלט אמליץ!',
-      avatar: 'https://images.pexels.com/photos/1587009/pexels-photo-1587009.jpeg?auto=compress&cs=tinysrgb&w=100&h=100',
-      service: 'תיקון מזגן',
-      date: 'לפני שבוע'
-    },
-    {
-      id: 2,
-      name: 'שרה לוי',
-      location: 'רעננה',
-      rating: 5,
-      text: 'התקנת מזגן חדש בבית. העבודה הייתה מקצועית ונקייה, הסביר לי על התחזוקה והשירות היה מעל הציפיות. תודה רבה!',
-      avatar: 'https://images.pexels.com/photos/1587009/pexels-photo-1587009.jpeg?auto=compress&cs=tinysrgb&w=100&h=100',
-      service: 'התקנת מזגן',
-      date: 'לפני שבועיים'
-    },
-    {
-      id: 3,
-      name: 'מיכאל אברהם',
-      location: 'הרצליה',
-      rating: 5,
-      text: 'שירות תחזוקה מעולה. ירון מקצועי, אמין ותמיד זמין. הצליח לחסוך לי הרבה כסף על ידי תיקון במקום החלפה מלאה.',
-      avatar: 'https://images.pexels.com/photos/1587009/pexels-photo-1587009.jpeg?auto=compress&cs=tinysrgb&w=100&h=100',
-      service: 'תחזוקה',
-      date: 'לפני חודש'
-    },
-    {
-      id: 4,
-      name: 'רחל גרין',
-      location: 'כפר סבא',
-      rating: 5,
-      text: 'המזגן נתקע בשבת בצהריים. ירון הגיע תוך חצי שעה ותיקן את הבעיה. שירות חירום מדהים! לא יכולתי לבקש יותר.',
-      avatar: 'https://images.pexels.com/photos/1587009/pexels-photo-1587009.jpeg?auto=compress&cs=tinysrgb&w=100&h=100',
-      service: 'שירות חירום',
-      date: 'לפני 3 ימים'
-    },
-    {
-      id: 5,
-      name: 'יוסי מזרחי',
-      location: 'רמת השרון',
-      rating: 5,
-      text: 'התקנה של מערכת מיזוג למשרד. עבודה מקצועית, נקייה ויעילה. הצוות הגיע בזמן וסיים מהר מהצפוי. איכות מעולה!',
-      avatar: 'https://images.pexels.com/photos/1587009/pexels-photo-1587009.jpeg?auto=compress&cs=tinysrgb&w=100&h=100',
-      service: 'התקנה מסחרית',
-      date: 'לפני שבוע'
-    },
-    {
-      id: 6,
-      name: 'אסתר שמיר',
-      location: 'גבעתיים',
-      rating: 5,
-      text: 'שירות מעולה ומחירים הוגנים. ירון מסביר בסבלנות ונותן עצות טובות לתחזוקה. אני לקוחה קבועה כבר שנתיים!',
-      avatar: 'https://images.pexels.com/photos/1587009/pexels-photo-1587009.jpeg?auto=compress&cs=tinysrgb&w=100&h=100',
-      service: 'לקוחה קבועה',
-      date: 'לפני יומיים'
+  const renderStars = (rating: number, isAverageRating: boolean = false) => {
+    const starArray = [];
+    const fullStars = Math.floor(rating);
+    const halfStar = rating % 1 >= 0.5;
+    const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+
+    for (let i = 0; i < fullStars; i++) {
+      starArray.push(
+        <Star key={`full-${i}`} className={`w-5 h-5 text-yellow-400 fill-current`} />
+      );
     }
-  ];
+    if (halfStar) {
+      // Using a half-filled star icon would be ideal here. Lucide-react doesn't have one by default.
+      // For simplicity, we can show a full star for .5 or greater, or an empty one.
+      // Or, use a more complex SVG or two icons overlaid.
+      // For now, let's represent .5 as a full star for simplicity in this component.
+      starArray.push(
+        <Star key="half" className={`w-5 h-5 text-yellow-400 fill-current`} /> // Simplified: show full for .5
+      );
+    }
+    for (let i = 0; i < emptyStars; i++) {
+      starArray.push(
+        <Star key={`empty-${i}`} className={`w-5 h-5 text-gray-300`} />
+      );
+    }
 
-  const renderStars = (rating: number) => {
-    return Array.from({ length: 5 }, (_, index) => (
+    return starArray.map((star, index) => (
       <motion.div
         key={index}
-        initial={{ scale: 0, rotate: -180 }}
+        initial={isAverageRating ? { scale: 0 } : { scale: 0, rotate: -180 }}
         whileInView={{ scale: 1, rotate: 0 }}
-        transition={{ duration: 0.3, delay: index * 0.1 }}
+        transition={{ duration: 0.3, delay: index * 0.05 }}
         viewport={{ once: true }}
       >
-        <Star
-          className={`w-5 h-5 ${
-            index < rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
-          }`}
-        />
+        {star}
       </motion.div>
     ));
   };
 
-  const getServiceColor = (service: string) => {
-    const colors = {
-      'תיקון מזגן': 'bg-red-100 text-red-700',
-      'התקנת מזגן': 'bg-blue-100 text-blue-700',
-      'תחזוקה': 'bg-green-100 text-green-700',
-      'שירות חירום': 'bg-orange-100 text-orange-700',
-      'התקנה מסחרית': 'bg-purple-100 text-purple-700',
-      'לקוחה קבועה': 'bg-pink-100 text-pink-700'
-    };
-    return colors[service as keyof typeof colors] || 'bg-gray-100 text-gray-700';
-  };
+  // getServiceColor can be removed if 'service' and 'date' are removed from testimonial cards
+  // For now, 'location' can be used in place of 'service' for the badge, or it can be removed.
+  // Let's remove the badge for now to simplify, as 'service' and 'date' are not in the new Testimonial interface.
 
   return (
     <section id="testimonials" className="py-24 bg-white relative overflow-hidden">
@@ -138,6 +89,30 @@ const Testimonials: React.FC = () => {
           </p>
         </motion.div>
 
+        {/* Average Rating Display */}
+        {averageRating && averageRating.value > 0 && (
+          <motion.div
+            className="mb-16 text-center p-6 bg-gradient-to-r from-yellow-50 via-orange-50 to-red-50 rounded-2xl shadow-lg"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7 }}
+            viewport={{ once: true }}
+          >
+            <h3 className="text-3xl font-bold text-gray-800 mb-2">
+              {t('testimonials.averageRatingTitle', 'דירוג ממוצע')}
+            </h3>
+            <div className="flex items-center justify-center space-x-2 rtl:space-x-reverse mb-2">
+              <span className="text-4xl font-black text-orange-500">{averageRating.value.toFixed(1)}</span>
+              <div className="flex">{renderStars(averageRating.value, true)}</div>
+            </div>
+            {averageRating.source && (
+              <p className="text-sm text-gray-600">
+                {t('testimonials.basedOn', 'מבוסס על')} {averageRating.reviewCount && `${averageRating.reviewCount} `} {t('testimonials.reviewsFrom', 'ביקורות מ')}{averageRating.source}
+              </p>
+            )}
+          </motion.div>
+        )}
+
         {/* Testimonials Grid */}
         <motion.div 
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20"
@@ -168,19 +143,31 @@ const Testimonials: React.FC = () => {
                 <Quote className="w-10 h-10" />
               </motion.div>
 
-              {/* Service Badge */}
-              <div className={`inline-block px-3 py-1 rounded-full text-xs font-bold mb-4 ${getServiceColor(testimonial.service)}`}>
-                {testimonial.service}
-              </div>
+              {/* Video Testimonial */}
+              {testimonial.videoUrl && (
+                <div className="mb-4 rounded-lg overflow-hidden shadow-md">
+                  <iframe
+                    width="100%"
+                    height="180" // Adjust height as needed
+                    src={testimonial.videoUrl.replace("watch?v=", "embed/")} // Basic embed conversion
+                    title={`Video testimonial from ${testimonial.name}`}
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  ></iframe>
+                </div>
+              )}
 
               {/* Rating */}
-              <div className="flex items-center space-x-1 rtl:space-x-reverse mb-6">
-                {renderStars(testimonial.rating)}
-              </div>
+              {testimonial.rating && testimonial.rating > 0 && (
+                <div className="flex items-center space-x-1 rtl:space-x-reverse mb-4">
+                  {renderStars(testimonial.rating)}
+                </div>
+              )}
 
               {/* Testimonial Text */}
               <motion.p 
-                className="text-gray-700 leading-relaxed mb-8 text-lg relative z-10 group-hover:text-gray-800 transition-colors duration-300"
+                className="text-gray-700 leading-relaxed mb-6 text-lg relative z-10 group-hover:text-gray-800 transition-colors duration-300"
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 transition={{ duration: 0.8, delay: 0.3 + index * 0.1 }}
@@ -198,12 +185,18 @@ const Testimonials: React.FC = () => {
                 viewport={{ once: true }}
               >
                 <div className="flex items-center space-x-4 rtl:space-x-reverse">
-                  <motion.img
-                    src={testimonial.avatar}
-                    alt={testimonial.name}
-                    className="w-14 h-14 rounded-full object-cover border-2 border-yellow-200 group-hover:border-yellow-300 transition-colors duration-300"
-                    whileHover={{ scale: 1.1 }}
-                  />
+                  {testimonial.avatar ? (
+                    <motion.img
+                      src={testimonial.avatar}
+                      alt={testimonial.name}
+                      className="w-12 h-12 rounded-full object-cover border-2 border-yellow-200 group-hover:border-yellow-300 transition-colors duration-300"
+                      whileHover={{ scale: 1.1 }}
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-600 text-xl font-bold border-2 border-yellow-200 group-hover:border-yellow-300 transition-colors duration-300">
+                      {testimonial.name.substring(0,1)}
+                    </div>
+                  )}
                   <div>
                     <div className="font-bold text-gray-900 group-hover:text-yellow-700 transition-colors duration-300">
                       {testimonial.name}
@@ -211,8 +204,7 @@ const Testimonials: React.FC = () => {
                     <div className="text-gray-600 text-sm">{testimonial.location}</div>
                   </div>
                 </div>
-                
-                <div className="text-xs text-gray-500">{testimonial.date}</div>
+                {/* Date was removed, can be added back if needed in Testimonial interface */}
               </motion.div>
 
               {/* Hover Effect */}
@@ -226,7 +218,8 @@ const Testimonials: React.FC = () => {
           ))}
         </motion.div>
 
-        {/* Stats */}
+        {/* Old Stats Section - To be removed or re-evaluated based on averageRating display */}
+        {/*
         <motion.div 
           className="bg-gradient-to-r from-yellow-500 via-orange-600 to-red-600 rounded-3xl p-12 text-white relative overflow-hidden"
           initial={{ opacity: 0, y: 30 }}

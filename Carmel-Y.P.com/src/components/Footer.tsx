@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom'; // Import Link
 import { Phone, Mail, MapPin, Clock, Facebook, Instagram, MessageCircle, Star, Shield, Award } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useContent } from '../contexts/ContentContext';
@@ -8,29 +9,47 @@ const Footer: React.FC = () => {
   const { t } = useLanguage();
   const { content } = useContent();
 
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
+  // scrollToSection might be removed if no longer used after nav updates
+  // const scrollToSection = (sectionId: string) => {
+  //   const element = document.getElementById(sectionId);
+  //   if (element) {
+  //     element.scrollIntoView({ behavior: 'smooth' });
+  //   }
+  // };
 
-  const services = [
-    'התקנת מזגנים',
-    'תיקון מזגנים',
-    'תחזוקה תקופתית',
-    'ייעוץ מקצועי',
-    'מילוי גז',
-    'שירות חירום 24/6'
+  const servicesLinks = [ // Renamed for clarity and to make them links
+    { nameKey: 'footer.service.installation', path: '/services#installation' }, // Example: linking to a section within services page
+    { nameKey: 'footer.service.repair', path: '/services#repair' },
+    { nameKey: 'footer.service.maintenance', path: '/services#maintenance' },
+    { nameKey: 'footer.service.consultation', path: '/services#consultation' },
+    { nameKey: 'footer.service.emergency', path: '/services#emergency' }
+    // 'מילוי גז' could be a sub-section or a specific service detail
   ];
 
   const navigationLinks = [
-    { key: 'nav.home', id: 'hero' },
-    { key: 'nav.services', id: 'services' },
-    { key: 'nav.about', id: 'about' },
-    { key: 'nav.products', id: 'products' },
-    { key: 'nav.testimonials', id: 'testimonials' },
-    { key: 'nav.contact', id: 'contact' }
+    { key: 'nav.home', path: '/' },
+    { key: 'nav.services', path: '/services' },
+    { key: 'nav.about', path: '/about' },
+    { key: 'nav.products', path: '/products' }, // Assuming /products page might exist
+    { key: 'nav.testimonials', path: '/testimonials' },
+    { key: 'nav.faq', path: '/faq' },
+    { key: 'nav.blog', path: '/blog' },
+    { key: 'nav.contact', path: '/contact' }
+  ];
+
+  const socialLinks = [
+    // 'מילוי גז' could be a sub-section or a specific service detail
+  ];
+
+  const navigationLinks = [
+    { key: 'nav.home', path: '/' },
+    { key: 'nav.services', path: '/services' },
+    { key: 'nav.about', path: '/about' },
+    { key: 'nav.products', path: '/products' }, // Assuming /products page might exist
+    { key: 'nav.testimonials', path: '/testimonials' },
+    { key: 'nav.faq', path: '/faq' }, // Added FAQ
+    { key: 'nav.blog', path: '/blog' },   // Added Blog
+    { key: 'nav.contact', path: '/contact' }
   ];
 
   const socialLinks = [
@@ -135,22 +154,23 @@ const Footer: React.FC = () => {
           >
             <h3 className="font-black text-xl mb-8 text-sky-400">{t('footer.services.title')}</h3>
             <ul className="space-y-4">
-              {services.map((service, index) => (
+              {servicesLinks.map((serviceLink, index) => (
                 <motion.li 
-                  key={index}
+                  key={serviceLink.nameKey}
                   initial={{ opacity: 0, x: -20 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.6, delay: 0.2 + index * 0.1 }}
                   viewport={{ once: true }}
                 >
-                  <motion.button
-                    onClick={() => scrollToSection('services')}
+                  <Link
+                    to={serviceLink.path} // Link to services page, hash can be used for specific section if implemented on that page
                     className="text-gray-400 hover:text-white transition-colors duration-300 flex items-center space-x-2 rtl:space-x-reverse group"
-                    whileHover={{ x: 5 }}
                   >
-                    <div className="w-2 h-2 bg-sky-500 rounded-full group-hover:bg-sky-400 transition-colors"></div>
-                    <span>{service}</span>
-                  </motion.button>
+                    <motion.div whileHover={{ x: 5 }} className="flex items-center space-x-2 rtl:space-x-reverse">
+                      <div className="w-2 h-2 bg-sky-500 rounded-full group-hover:bg-sky-400 transition-colors"></div>
+                      <span>{t(serviceLink.nameKey, serviceLink.nameKey.split('.').pop())}</span> {/* Fallback to key part */}
+                    </motion.div>
+                  </Link>
                 </motion.li>
               ))}
             </ul>
@@ -286,20 +306,21 @@ const Footer: React.FC = () => {
           transition={{ duration: 0.8, delay: 0.8 }}
           viewport={{ once: true }}
         >
-          <div className="flex flex-wrap justify-center gap-8 mb-12">
+          <div className="flex flex-wrap justify-center gap-x-8 gap-y-4 mb-12"> {/* Adjusted gap */}
             {navigationLinks.map((item, index) => (
-              <motion.button
+              <motion.custom
                 key={item.key}
-                onClick={() => scrollToSection(item.id)}
+                component={Link}
+                to={item.path}
                 className="text-gray-400 hover:text-white transition-colors duration-300 font-semibold"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.9 + index * 0.1 }}
+                transition={{ duration: 0.6, delay: 0.9 + index * 0.05 }} // Slightly faster delay
                 viewport={{ once: true }}
                 whileHover={{ y: -2 }}
               >
                 {t(item.key)}
-              </motion.button>
+              </motion.custom>
             ))}
           </div>
         </motion.div>

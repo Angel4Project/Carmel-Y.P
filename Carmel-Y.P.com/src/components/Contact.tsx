@@ -2,15 +2,16 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Phone, Mail, MapPin, Clock, Send, CheckCircle, MessageSquare, Zap } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { useContent } from '../contexts/ContentContext';
+import { useContent, NewLeadData } from '../contexts/ContentContext'; // Import NewLeadData
 
 const Contact: React.FC = () => {
   const { t } = useLanguage();
-  const { content } = useContent();
+  const { content, addLead } = useContent(); // Destructure addLead
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
     email: '',
+    residentialArea: '', // New field
     service: '',
     message: ''
   });
@@ -34,6 +35,23 @@ const Contact: React.FC = () => {
     
     setIsSubmitting(false);
     setIsSubmitted(true);
+
+    // Add lead to context
+    const leadData: NewLeadData = {
+      name: formData.name,
+      phone: formData.phone,
+      email: formData.email || undefined, // Ensure optional fields are handled
+      residentialArea: formData.residentialArea || undefined,
+      message: `${formData.service ? `Service selected: ${formData.service}. ` : ''}${formData.message}`,
+      source: 'Contact Form'
+    };
+    try {
+      addLead(leadData); // Call addLead from context
+      console.log('Lead added from contact form:', leadData);
+    } catch (error) {
+      console.error("Error adding lead from contact form:", error);
+      // Potentially show an error to the user that lead submission part failed
+    }
     
     // Reset form after 3 seconds
     setTimeout(() => {
@@ -42,6 +60,7 @@ const Contact: React.FC = () => {
         name: '',
         phone: '',
         email: '',
+        residentialArea: '',
         service: '',
         message: ''
       });
@@ -225,6 +244,26 @@ const Contact: React.FC = () => {
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.35 }} // Adjusted delay
+                  viewport={{ once: true }}
+                >
+                  <label htmlFor="residentialArea" className="block text-sm font-bold text-gray-700 mb-3">
+                    {t('contact.form.residentialArea', 'אזור מגורים')}
+                  </label>
+                  <input
+                    type="text"
+                    id="residentialArea"
+                    name="residentialArea"
+                    value={formData.residentialArea}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-green-100 focus:border-green-500 transition-all duration-300 text-lg"
+                    placeholder="לדוגמה: כפר סבא, רעננה, השרון"
+                  />
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.4 }}
                   viewport={{ once: true }}
                 >
@@ -307,6 +346,11 @@ const Contact: React.FC = () => {
             {/* Contact Info Cards */}
             <div className="space-y-6">
               {contactInfo.map((info, index) => {
+                // Prevent rendering map card if mapEmbedUrl is missing for the 'location' item
+                if (info.title === t('contact.info.location') && !content.contact.mapEmbedUrl && info.value === content.contact.address) {
+                   // If it's the address card and there's no map URL, we might still want to show address, or handle differently
+                   // For now, let's assume the address card is still valuable. The map is separate.
+                }
                 const IconComponent = info.icon;
                 return (
                   <motion.div
@@ -340,6 +384,33 @@ const Contact: React.FC = () => {
                 );
               })}
             </div>
+
+            </div>
+
+            {/* Google Map Embed */}
+            {content.contact.mapEmbedUrl && (
+              <motion.div
+                className="mt-8"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.5 }} // Delay after contact cards
+                viewport={{ once: true }}
+              >
+                <h4 className="text-2xl font-bold text-gray-900 mb-4 text-center lg:text-right">{t('contact.mapTitle', 'איך להגיע אלינו')}</h4>
+                <div className="rounded-2xl overflow-hidden shadow-xl border border-gray-200">
+                  <iframe
+                    src={content.contact.mapEmbedUrl}
+                    width="100%"
+                    height="350"
+                    style={{ border: 0 }}
+                    allowFullScreen={false}
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title="Our Location Map"
+                  ></iframe>
+                </div>
+              </motion.div>
+            )}
 
             {/* Emergency Service Card */}
             <motion.div 

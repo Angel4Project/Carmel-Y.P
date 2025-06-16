@@ -7,32 +7,33 @@ import { useContent } from '../contexts/ContentContext';
 const About: React.FC = () => {
   const { t } = useLanguage();
   const { content } = useContent();
+  const { about: aboutContent, contact: contactContent } = content; // Destructure for easier access
 
   const stats = [
     {
       icon: Clock,
-      number: content.about.experience,
+      number: aboutContent.experience,
       labelKey: 'about.experience',
       color: 'from-sky-500 to-blue-600',
       description: 'של ניסיון מקצועי'
     },
     {
       icon: Users,
-      number: content.about.customers,
+      number: aboutContent.customers,
       labelKey: 'about.customers',
       color: 'from-emerald-500 to-teal-600',
       description: 'לקוחות מרוצים'
     },
     {
       icon: CheckCircle,
-      number: content.about.projects,
+      number: aboutContent.projects,
       labelKey: 'about.projects',
       color: 'from-purple-500 to-indigo-600',
       description: 'פרויקטים הושלמו'
     },
     {
       icon: Award,
-      number: content.about.warranty,
+      number: aboutContent.warranty,
       labelKey: 'about.warranty',
       color: 'from-orange-500 to-red-600',
       description: 'חודשי אחריות'
@@ -47,11 +48,7 @@ const About: React.FC = () => {
     { icon: Award, text: 'אחריות מלאה על כל העבודות', color: 'text-red-600' }
   ];
 
-  const certifications = [
-    { title: 'רישיון חשמלאי מוסמך', desc: 'רישיון חשמלאי מוסמך ומעודכן', icon: Award },
-    { title: 'ביטוח צד שלישי', desc: 'ביטוח מקיף לכל העבודות', icon: Shield },
-    { title: 'תקני איכות ISO', desc: 'עבודה על פי תקני איכות בינלאומיים', icon: Star }
-  ];
+  // Certifications are now from content.about.certificates
 
   return (
     <section id="about" className="py-24 bg-white relative overflow-hidden">
@@ -82,7 +79,7 @@ const About: React.FC = () => {
 
             <h2 className="text-5xl md:text-6xl font-black text-gray-900 mb-8 leading-tight">
               <span className="bg-gradient-to-r from-sky-600 to-blue-700 bg-clip-text text-transparent">
-                {content.about.title}
+                {aboutContent.title}
               </span>
             </h2>
 
@@ -93,18 +90,62 @@ const About: React.FC = () => {
               transition={{ duration: 0.8, delay: 0.2 }}
               viewport={{ once: true }}
             >
-              {content.about.subtitle}
+              {aboutContent.subtitle}
             </motion.p>
 
-            <motion.p 
-              className="text-lg text-gray-600 leading-relaxed mb-10"
+            {/* Team Image */}
+            {aboutContent.teamImage && (
+              <motion.div
+                className="mb-10 rounded-2xl overflow-hidden shadow-xl"
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.8, delay: 0.3 }}
+                viewport={{ once: true }}
+              >
+                <img
+                  src={aboutContent.teamImage}
+                  alt={t('about.teamImageAlt', 'צוות החברה')}
+                  className="w-full h-auto object-cover max-h-96"
+                />
+              </motion.div>
+            )}
+
+            <motion.div
+              className="text-lg text-gray-600 leading-relaxed mb-6 prose prose-lg max-w-none"
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.4 }}
               viewport={{ once: true }}
             >
-              {content.about.description}
-            </motion.p>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">{t('about.establishmentTitle', 'הקמה וניסיון')}</h3>
+              <p>{aboutContent.establishmentAndExperience}</p>
+            </motion.div>
+
+            {aboutContent.approach && (
+              <motion.div
+                className="text-lg text-gray-600 leading-relaxed mb-6 prose prose-lg max-w-none"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                transition={{ duration: 0.8, delay: 0.5 }}
+                viewport={{ once: true }}
+              >
+                <h3 className="text-xl font-bold text-gray-800 mb-2">{t('about.approachTitle', 'גישתנו לשירות')}</h3>
+                <p>{aboutContent.approach}</p>
+              </motion.div>
+            )}
+
+            {aboutContent.vision && (
+              <motion.div
+                className="text-lg text-gray-600 leading-relaxed mb-10 prose prose-lg max-w-none"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                transition={{ duration: 0.8, delay: 0.6 }}
+                viewport={{ once: true }}
+              >
+                <h3 className="text-xl font-bold text-gray-800 mb-2">{t('about.visionTitle', 'החזון שלנו')}</h3>
+                <p>{aboutContent.vision}</p>
+              </motion.div>
+            )}
 
             {/* Features */}
             <motion.div 
@@ -145,7 +186,7 @@ const About: React.FC = () => {
               viewport={{ once: true }}
             >
               <motion.a
-                href={`tel:${content.contact.phone}`}
+                href={`tel:${contactContent.phone}`}
                 className="bg-gradient-to-r from-sky-500 to-blue-600 text-white px-8 py-4 rounded-2xl font-bold hover:from-sky-600 hover:to-blue-700 transition-all duration-300 text-center shadow-xl"
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
@@ -241,35 +282,49 @@ const About: React.FC = () => {
               <p className="text-xl text-gray-600">עבודה על פי התקנים הישראליים והבינלאומיים</p>
             </motion.div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {certifications.map((cert, index) => {
-                const IconComponent = cert.icon;
-                return (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {aboutContent.certificates && aboutContent.certificates.length > 0 ? (
+                aboutContent.certificates.map((cert, index) => (
                   <motion.div 
-                    key={index}
-                    className="bg-white rounded-2xl p-8 text-center shadow-lg hover:shadow-xl transition-all duration-300 group"
+                    key={cert.id || index}
+                    className="bg-white rounded-2xl p-6 text-center shadow-lg hover:shadow-xl transition-all duration-300 group"
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: index * 0.2 }}
                     viewport={{ once: true }}
                     whileHover={{ y: -5 }}
                   >
-                    <motion.div 
-                      className="w-16 h-16 bg-gradient-to-br from-sky-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg"
-                      whileHover={{ rotate: 360, scale: 1.1 }}
-                      transition={{ duration: 0.6 }}
-                    >
-                      <IconComponent className="w-8 h-8 text-white" />
-                    </motion.div>
-                    <h4 className="font-black text-gray-900 mb-3 text-lg group-hover:text-sky-700 transition-colors">
-                      {cert.title}
+                    {cert.imageUrl ? (
+                      <motion.img
+                        src={cert.imageUrl}
+                        alt={cert.name}
+                        className="w-32 h-32 object-contain mx-auto mb-4 rounded-md group-hover:scale-105 transition-transform"
+                        whileHover={{ scale: 1.1 }}
+                      />
+                    ) : (
+                      <motion.div
+                        className="w-16 h-16 bg-gradient-to-br from-sky-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg"
+                        whileHover={{ rotate: 360, scale: 1.1 }}
+                        transition={{ duration: 0.6 }}
+                      >
+                        <Award className="w-8 h-8 text-white" /> {/* Default Icon */}
+                      </motion.div>
+                    )}
+                    <h4 className="font-black text-gray-900 mb-2 text-lg group-hover:text-sky-700 transition-colors">
+                      {cert.link ? (
+                        <a href={cert.link} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                          {cert.name}
+                        </a>
+                      ) : (
+                        cert.name
+                      )}
                     </h4>
-                    <p className="text-gray-600 text-sm leading-relaxed">
-                      {cert.desc}
-                    </p>
+                    {/* Optional: Add a description for certificate if needed in AboutContent interface */}
                   </motion.div>
-                );
-              })}
+                ))
+              ) : (
+                <p className="col-span-full text-center text-gray-500">אין כרגע תעודות או רישיונות להצגה.</p>
+              )}
             </div>
           </div>
         </motion.div>
